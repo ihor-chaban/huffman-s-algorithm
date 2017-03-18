@@ -1,7 +1,7 @@
 /////////////////////////////////////////////////
 //											   //
-//	Implementation of data compressing and	   //
-//	decompressing using Huffman's algorithm	   //
+//	Implementation of data compression and	   //
+//	decompression using Huffman's algorithm	   //
 //											   //
 //			Author - Ihor Chaban			   //
 //											   //
