@@ -14,12 +14,12 @@
 #include <vector>
 
 // max range of binary tree array size in bytes
-#define MAX_RANGE_OF_TREE unsigned int
+#define MAX_RANGE_OF_TREE unsigned short int
 
 using namespace std;
 
 struct Node{
-	int number;
+	unsigned long int number;
 	char data;
 	Node *left, *right;
 };
@@ -41,7 +41,7 @@ void printTree(Node* root, unsigned int indent = 0){
 		}
 
 		cout << root->number;
-		if (root->data){
+		if (root->left == NULL && root->left == NULL){
 			cout << "(" << root->data << ")";
 		}
 		cout << endl;
@@ -135,9 +135,9 @@ vector <bool> treeToBin(Node* root){
 
 	vector <bool> second;
 	for (unsigned int i = 0; i < first.size(); i++){
-		if (first[i].data){
+		if (first[i].left == NULL && first[i].right == NULL){
 			second.push_back(1);
-
+			
 			for (int j = 7; j >= 0; j--){
 				second.push_back((first[i].data >> j) & 1);
 			}
@@ -152,17 +152,15 @@ vector <bool> treeToBin(Node* root){
 
 Node* buildTree(char* filename){
 	map <char, vector <bool> > table;
-	map <char, int> count;
+	map <char, unsigned long int> count;
 	char temp;
 
 	fstream input(filename, ios_base::in | ios_base::binary);
 	if (input.is_open()){
-		while (!input.eof()){
-			temp = input.get();
-			if (temp != EOF){
+		while (input.read(&temp, sizeof(char))){
 				count[temp]++;
-			}
 		}
+		count[EOF]++;
 	}
 	else {
 		return NULL;
@@ -170,7 +168,7 @@ Node* buildTree(char* filename){
 	input.close();
 
 	list <Node*> nodeList;
-	for (map<char, int>::iterator itr = count.begin(); itr != count.end(); itr++){
+	for (map<char, unsigned long int>::iterator itr = count.begin(); itr != count.end(); itr++){
 		Node *temp = new Node();
 		temp->number = itr->second;
 		temp->data = itr->first;
@@ -205,7 +203,7 @@ void buildTable(Node* root, map <char, vector <bool> > &table){
 			buildTable(root->right, table);
 		}
 
-		if (root->data){
+		if (root->left == NULL && root->right == NULL){
 			table[root->data] = code;
 		}
 
@@ -213,6 +211,63 @@ void buildTable(Node* root, map <char, vector <bool> > &table){
 			code.pop_back();
 		}
 	}
+}
+
+Node* restoreTree(char* input, MAX_RANGE_OF_TREE size){
+	list <bool> tree_bin;
+	for (unsigned int i = 0; i < size; i++){
+		for (unsigned int j = 0; j < 8; j++){
+			tree_bin.push_back(input[i] & (1 << (7 - j)));
+		}
+	}
+
+	Node* root = NULL;
+	list <Node*> z1, z2;
+	if (!tree_bin.empty() && !tree_bin.front()){
+		Node* temp = new Node();
+
+		Node* tempL = new Node();
+		Node* tempR = new Node();
+
+		temp->left = tempL;
+		temp->right = tempR;
+
+		z1.push_back(tempL);
+		z1.push_back(tempR);
+
+		tree_bin.pop_front();
+		root = temp;
+	}
+
+	while (!z1.empty()){
+		while (!z1.empty()){
+			if (!tree_bin.front()){
+				Node* tempL = new Node();
+				Node* tempR = new Node();
+
+				z1.front()->left = tempL;
+				z1.front()->right = tempR;
+
+				z2.push_back(tempL);
+				z2.push_back(tempR);
+
+				z1.pop_front();
+				tree_bin.pop_front();
+			}
+			else {
+				z1.front()->data = 0;
+				tree_bin.pop_front();
+				for (int i = 0; i < 8; i++){
+					z1.front()->data |= tree_bin.front() << (7 - i);
+					tree_bin.pop_front();
+				}
+				z1.pop_front();
+			}
+		}
+		swap(z1, z2);
+	}
+
+	return root;
 }
 
 void compress(char* filename){
@@ -230,8 +285,6 @@ void compress(char* filename){
 
 	// building binary tree from input file
 	Node* tree = buildTree(filename);
-
-	printTree(tree);
 
 	// building map of chars and its binary code
 	map <char, vector <bool> > table;
@@ -278,19 +331,29 @@ void compress(char* filename){
 	// replacement of source data by its binary codes
 	buffer = 0; c_buf = 0;
 	char temp;
-	while (!input.eof()){
-		temp = input.get();
-		if (temp != EOF){
-			for (vector <bool>::iterator i = table[temp].begin(); i != table[temp].end(); i++){
-				buffer |= (*i) << (7 - c_buf++);
-				if (c_buf == 8){
-					output.write((char*)&buffer, sizeof(char));
-					c_buf = 0;
-					buffer = 0;
-				}
+	while (input.read(&temp, sizeof(char))){
+		for (vector <bool>::iterator i = table[temp].begin(); i != table[temp].end(); i++){
+			buffer |= (*i) << (7 - c_buf++);
+			if (c_buf == 8){
+				output.write((char*)&buffer, sizeof(char));
+				c_buf = 0;
+				buffer = 0;
 			}
 		}
 	}
+
+	// adding EOF marker to encoded data
+	temp = EOF;
+	for (vector <bool>::iterator i = table[temp].begin(); i != table[temp].end(); i++){
+		buffer |= (*i) << (7 - c_buf++);
+		if (c_buf == 8){
+			output.write((char*)&buffer, sizeof(char));
+			c_buf = 0;
+			buffer = 0;
+		}
+	}
+
+	// writing last incomplete byte if exists
 	if (c_buf){
 		output.write((char*)&buffer, sizeof(char));
 	}
@@ -326,109 +389,79 @@ void decompress(char* filename){
 	MAX_RANGE_OF_TREE tree_size;
 	input.read((char*)&tree_size, sizeof(MAX_RANGE_OF_TREE));
 
-	// reading binary tree array
-	list <bool> tree_bin;
+	// restoring binary tree from array
 	char* temp = new char[tree_size];
 	input.read(temp, sizeof(char)* tree_size);
-	for (int i = 0; i < tree_size; i++){
-		for (int j = 0; j < 8; j++){
-			tree_bin.push_back(temp[i] & (1 << (7 - j)));
-		}
-	}
+	Node* tree = restoreTree(temp, tree_size);
 	delete[]temp;
 
-	// restoring binary tree from array
-	Node* root = NULL;
-	list <Node*> z1, z2;
-	if (!tree_bin.empty() && !tree_bin.front()){
-		Node* temp = new Node();
-
-		Node* tempL = new Node();
-		Node* tempR = new Node();
-
-		temp->left = tempL;
-		temp->right = tempR;
-
-		z1.push_back(tempL);
-		z1.push_back(tempR);
-
-		tree_bin.pop_front();
-		root = temp;
-	}
-
-	while (!tree_bin.empty() && !z1.empty()){
-		while (!z1.empty()){
-			if (!tree_bin.front()){
-				Node* tempL = new Node();
-				Node* tempR = new Node();
-
-				z1.front()->left = tempL;
-				z1.front()->right = tempR;
-
-				z2.push_back(tempL);
-				z2.push_back(tempR);
-
-				z1.pop_front();
-				tree_bin.pop_front();
-			}
-			else {
-				z1.front()->data = 0;
-				tree_bin.pop_front();
-				for (int i = 0; i < 8; i++){
-					z1.front()->data |= tree_bin.front() << (7 - i);
-					tree_bin.pop_front();
-				}
-				z1.pop_front();
-			}
-		}
-		swap(z1, z2);
-	}
-
-	printTree(root);
-
 	// checking if source file already exists
-	/*fstream output(out_filename);
-	if (!output.is_open()){
+	fstream output(out_filename);
+	output.open(out_filename, ios_base::out | ios_base::binary | ios_base::trunc);
+	/*if (!output.is_open()){
 	output.open(out_filename, ios_base::out | ios_base::binary);
-	} else {
-	cout << "File " << out_filename << " already exists!" << endl;
-	return;
-	}
-
-	output.close();*/
-
-	input.close();
-
-	/*Node* p = tree;
-	int count = 0; char byte; bool b; int i = 0;
-	while (out[i] != '\0'){
-	byte = out[i];
-	b = byte & (1 << (7 - count));
-	if (b){
-	p = p->right;
 	}
 	else {
-	p = p->left;
-	}
-
-	if ((p->left == NULL) && (p->right == NULL)){
-	cout << p->data;
-	p = tree;
-	}
-
-	count++;
-
-	if (count == 8){
-	count = 0;
-	byte = out[i++];
-	}
+	cout << "File " << out_filename << " already exists!" << endl;
+	return;
 	}*/
+
+	Node* p = tree;
+	int count = 0;
+	char byte;
+	bool bit = false, end = false;
+
+	list <char> buffer;
+	while (input.read(&byte, sizeof(char))){
+		for (int i = 0; i < 8; i++){
+			bit = byte & (1 << (7 - i));
+
+			if (bit == 0){
+				p = p->left;
+			}
+
+			if (bit == 1){
+				p = p->right;
+			}
+
+			if (p->left == NULL && p->right == NULL){
+				if (p->data != EOF){
+					buffer.push_back(p->data);
+
+					if (buffer.size() == 512){
+						while (!buffer.empty()){
+							output.write((char*)&buffer.front(), sizeof(char));
+							buffer.pop_front();
+						}
+					}
+
+				} else {
+					while (!buffer.empty()){
+						output.write((char*)&buffer.front(), sizeof(char));
+						buffer.pop_front();
+					}
+
+					buffer.push_back(EOF);
+				}
+
+				p = tree;
+			}
+		}
+	}
+
+	output.close();
+	input.close();
 }
 
 int main(int argc, char** argv)
 {
-	//compress("input.txt");
-	decompress("input.bin");
+	char filename[] = "input.bin";
+
+	if (strcmp(getExtension(filename), "bin")){
+		compress(filename);
+	} else {
+		decompress(filename);
+	}
 
 	return 0;
 }
