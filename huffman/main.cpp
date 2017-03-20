@@ -355,6 +355,9 @@ void compress(char* filename){
 
 	// writing last incomplete byte if exists
 	if (c_buf){
+		for ( ; c_buf < 8; c_buf++){
+			buffer |= (!table[EOF][0]) << (7 - c_buf++);
+		}
 		output.write((char*)&buffer, sizeof(char));
 	}
 
