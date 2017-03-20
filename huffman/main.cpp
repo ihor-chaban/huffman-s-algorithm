@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <string>
 #include <list>
 #include <map>
 #include <queue>
@@ -359,9 +360,22 @@ void compress(char* filename){
 		output.write((char*)&buffer, sizeof(char));
 	}
 
-	// replacement of source data by its binary codes
+	
 	buffer = 0; c_buf = 0;
 	char temp;
+
+	// adding EOF marker at start of encoded data
+	temp = EOF;
+	for (vector <bool>::iterator i = table[temp].begin(); i != table[temp].end(); i++){
+		buffer |= (*i) << (7 - c_buf++);
+		if (c_buf == 8){
+			output.write((char*)&buffer, sizeof(char));
+			c_buf = 0;
+			buffer = 0;
+		}
+	}
+
+	// replacement of source data by its binary codes
 	while (input.read(&temp, sizeof(char))){
 		for (vector <bool>::iterator i = table[temp].begin(); i != table[temp].end(); i++){
 			buffer |= (*i) << (7 - c_buf++);
@@ -373,7 +387,7 @@ void compress(char* filename){
 		}
 	}
 
-	// adding EOF marker to encoded data
+	// adding EOF marker in end of encoded data
 	temp = EOF;
 	for (vector <bool>::iterator i = table[temp].begin(); i != table[temp].end(); i++){
 		buffer |= (*i) << (7 - c_buf++);
@@ -408,7 +422,7 @@ void decompress(char* filename){
 	char ext_length;
 	char* ext;
 	char* out_filename;
-	input.read((char*)&ext_length, sizeof(char));
+	input.read(&ext_length, sizeof(char));
 
 	// if source file has extension
 	if (ext_length > 0){
@@ -439,24 +453,48 @@ void decompress(char* filename){
 	Node* tree = restoreTree(temp, tree_size);
 	delete[]temp;
 
+	Node* p = tree;
+	char byte;
+	bool bit = false;
+
+	// checking if file is valid archive
+	if (!input.read(&byte, sizeof(char))){
+		cout << "File " << filename << " is not a valid archive!" << endl;
+		return;
+	}
+	for (int i = 0; i < 8; i++){
+		bit = ((byte & (1 << (7 - i))) != 0);
+		if (bit == 0){
+			p = p->left;
+		}
+		if (bit == 1){
+			p = p->right;
+		}
+		if (isPeak(p)){
+			if (p->data != EOF){
+				cout << "File " << filename << " is not a valid archive!" << endl;
+				return;
+			} else {
+				p = tree;
+			}
+		}
+	}
+
 	// checking if source file already exists
 	fstream output(out_filename);
 	if (!output.is_open()){
 		output.open(out_filename, ios_base::out | ios_base::binary);
-	} else {
+	}
+	else {
 		cout << "File " << filename << " already extracted!" << endl;
 		return;
 	}
-	
+
 	// restoring source data
-	Node* p = tree;
-	char byte;
-	bool bit = false;
 	queue <char> buffer;
 	while (input.read(&byte, sizeof(char))){
 		for (int i = 0; i < 8; i++){
 			bit = ((byte & (1 << (7 - i))) != 0);
-			cout << bit;
 
 			if (bit == 0){
 				p = p->left;
