@@ -61,91 +61,48 @@ void printTree(Node* root, unsigned int indent = 0){
 	}
 }
 
-char* getExtension(char* input){
-	int i = 0, j = 0, start_index = 0;
-	for (i = 0; input[i] != '\0'; i++){
-		if (input[i] == '.'){
-			start_index = i + 1;
-		}
+void deleteTree(Node* &root){
+	if (root){
+		deleteTree(root->left);
+		deleteTree(root->right);
+		delete root;
 	}
-
-	if (start_index > 1){
-		char* result = new char[i - start_index];
-		for (i = start_index; input[i] != '\0'; i++){
-			result[j++] = input[i];
-		}
-		result[j] = '\0';
-		return result;
-	}
-	else
-		return "";
 }
 
-char* removeExtension(char* input){
-	int i = 0, j = 0, start_index = 0;
-	for (i = 0; input[i] != '\0'; i++){
-		if (input[i] == '.'){
-			start_index = i;
-		}
+string getExtension(string input){
+	if (input.find('.') != string::npos) {
+		return input.erase(0, input.find_last_of('.') + 1);
+	} else {
+		return "";
 	}
+}
 
-	if (!start_index){
+string removeExtension(string input){
+	if (input.find('.') != string::npos) {
+		return input.erase(input.find_last_of('.'), input.length() - input.find_last_of('.'));
+	} else {
 		return input;
 	}
-
-	char* result = new char[i - (i - start_index)];
-	for (i = 0; i < start_index; i++){
-		result[j++] = input[i];
-	}
-	result[j] = '\0';
-
-	return result;
 }
 
-char* addExtension(char* input, char* extension){
-	char* result;
-	int size1 = 0, size2 = 0;
-	for (int i = 0; input[i] != '\0'; i++){
-		size1++;
-	}
-	for (int i = 0; extension[i] != '\0'; i++){
-		size2++;
-	}
-	result = new char[size1 + size2 + 1];
-
-	int j = 0;
-	for (int i = 0; i < size1; i++){
-		result[j++] = input[i];
-	}
-	result[j++] = '.';
-	for (int i = 0; i < size2; i++){
-		result[j++] = extension[i];
-	}
-	result[j] = '\0';
-	return result;
+string addExtension(string input, string extension){
+	return input + '.' + extension;
 }
 
-char* changeExtension(char* input, char* extension){
-	char* result;
-	int size1 = 0, size2 = 0;
-	for (int i = 0; removeExtension(input)[i] != '\0'; i++){
-		size1++;
-	}
-	for (int i = 0; extension[i] != '\0'; i++){
-		size2++;
-	}
-	result = new char[size1 + size2 + 1];
+string changeExtension(string input, string extension){
+	return addExtension(removeExtension(input), extension);
+}
 
-	int j = 0;
-	for (int i = 0; i < size1; i++){
-		result[j++] = input[i];
+bool iCompare(string const &a, string const &b){
+	if (a.length() == b.length()) {
+		unsigned int i = 0;
+		for (; (i < a.length()) && (tolower(a[i]) == tolower(b[i])); i++){}
+		if (i == a.length()){
+			return true;
+		}
 	}
-	result[j++] = '.';
-	for (int i = 0; i < size2; i++){
-		result[j++] = extension[i];
-	}
-	result[j] = '\0';
-	return result;
+
+	return false;
 }
 
 vector <bool> treeToBin(Node* root){
@@ -198,8 +155,6 @@ Node* buildTree(char* filename){
 		return NULL;
 	}
 	input.close();
-
-
 
 	list <Node*> nodes;
 	for (map<char, unsigned long int>::iterator itr = count.begin(); itr != count.end(); itr++){
@@ -313,9 +268,9 @@ void compress(char* filename){
 	}
 
 	// getting source file extension
-	char* ext = getExtension(filename);
-	char ext_length = strlen(ext);
-	char* out_filename = addExtension(filename, COMPRESSED_EXTENSION);
+	string ext = getExtension(filename);
+	char ext_length = ext.length();
+	string out_filename = addExtension(filename, COMPRESSED_EXTENSION);
 
 	// building binary tree from input file
 	Node* tree = buildTree(filename);
@@ -326,6 +281,8 @@ void compress(char* filename){
 
 	// converting binary tree into binary array
 	vector <bool> tree_bin = treeToBin(tree);
+
+	deleteTree(tree);
 
 	// converting size of binary tree array from bits to bytes
 	MAX_RANGE_OF_TREE tree_size = static_cast <MAX_RANGE_OF_TREE> (ceil(tree_bin.size() / 8.0));
@@ -420,8 +377,8 @@ void decompress(char* filename){
 
 	// getting source extension and setting output filename
 	char ext_length;
-	char* ext;
-	char* out_filename;
+	char* ext = NULL;
+	string out_filename;
 	input.read(&ext_length, sizeof(char));
 
 	// if source file has extension
@@ -431,16 +388,20 @@ void decompress(char* filename){
 
 		ext[ext_length] = '\0';
 
-		if (_stricmp(getExtension(removeExtension(filename)), ext) == 0){
+		if (iCompare(getExtension(removeExtension(filename)), ext)){
 			out_filename = removeExtension(filename);
 		} else {
 			out_filename = changeExtension(filename, ext);
 		}
 	} else {
 		out_filename = filename;
-		while (_stricmp(getExtension(out_filename), "") != 0){
+		while (getExtension(out_filename).length() != 0){
 			out_filename = removeExtension(out_filename);
 		}
+	}
+
+	if (ext){
+		delete[] ext;
 	}
 	
 	// reading size of binary tree array
@@ -523,18 +484,19 @@ void decompress(char* filename){
 		}
 	}
 
+	deleteTree(tree);
 	output.close();
 	input.close();
 }
 
 int main(int argc, char** argv)
 {
-	char filename[] = "input.bin";
+	char filename[] = "input.exe.bin";
 
-	if (_stricmp(getExtension(filename), COMPRESSED_EXTENSION)){
-		compress(filename);
-	} else {
+	if (iCompare(getExtension(filename), COMPRESSED_EXTENSION)){
 		decompress(filename);
+	} else {
+		compress(filename);
 	}
 
 	return 0;
