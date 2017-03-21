@@ -14,8 +14,9 @@
 #include <map>
 #include <queue>
 #include <vector>
+#include <conio.h>
 
-// file extension after compressing
+// file extension after compression
 #define COMPRESSED_EXTENSION "bin"
 
 // max range of binary tree array size in bytes
@@ -69,10 +70,11 @@ void deleteTree(Node* &root){
 	}
 }
 
-string getExtension(string input){
-	if (input.find('.') != string::npos) {
-		return input.erase(0, input.find_last_of('.') + 1);
-	} else {
+string getExtension(string input, char delim){
+	if (input.find(delim) != string::npos) {
+		return input.erase(0, input.find_last_of(delim) + 1);
+	}
+	else {
 		return "";
 	}
 }
@@ -80,7 +82,8 @@ string getExtension(string input){
 string removeExtension(string input){
 	if (input.find('.') != string::npos) {
 		return input.erase(input.find_last_of('.'), input.length() - input.find_last_of('.'));
-	} else {
+	}
+	else {
 		return input;
 	}
 }
@@ -126,7 +129,7 @@ vector <bool> treeToBin(Node* root){
 	for (unsigned int i = 0; i < first.size(); i++){
 		if (isPeak(&first[i])){
 			second.push_back(1);
-			
+
 			for (int j = 7; j >= 0; j--){
 				second.push_back((first[i].data >> j) & 1);
 			}
@@ -147,7 +150,7 @@ Node* buildTree(char* filename){
 	fstream input(filename, ios_base::in | ios_base::binary);
 	if (input.is_open()){
 		while (input.read(&temp, sizeof(char))){
-				count[temp]++;
+			count[temp]++;
 		}
 		count[EOF]++;
 	}
@@ -255,7 +258,7 @@ Node* restoreTree(char* input, MAX_RANGE_OF_TREE size){
 		}
 		swap(current, next);
 	}
-	
+
 	return root;
 }
 
@@ -263,12 +266,12 @@ void compress(char* filename){
 	// opening source file
 	fstream input(filename, ios_base::in | ios_base::binary);
 	if (!input.is_open()){
-		cout << "File " << filename << " does not exist!" << endl;
+		cout << "does not exist!";
 		return;
 	}
 
 	// getting source file extension
-	string ext = getExtension(filename);
+	string ext = getExtension(filename, '.');
 	char ext_length = ext.length();
 	string out_filename = addExtension(filename, COMPRESSED_EXTENSION);
 
@@ -291,8 +294,9 @@ void compress(char* filename){
 	fstream output(out_filename);
 	if (!output.is_open()){
 		output.open(out_filename, ios_base::out | ios_base::binary);
-	} else {
-		cout << "File " << filename << " already compressed!" << endl;
+	}
+	else {
+		cout << "has already compressed!";
 		return;
 	}
 
@@ -317,7 +321,7 @@ void compress(char* filename){
 		output.write((char*)&buffer, sizeof(char));
 	}
 
-	
+
 	buffer = 0; c_buf = 0;
 	char temp;
 
@@ -357,21 +361,23 @@ void compress(char* filename){
 
 	// writing last incomplete byte if exists
 	if (c_buf){
-		for ( ; c_buf < 8; c_buf++){
+		for (; c_buf < 8; c_buf++){
 			buffer |= (!table[EOF][0]) << (7 - c_buf++);
 		}
 		output.write((char*)&buffer, sizeof(char));
 	}
 
-	input.close();
 	output.close();
+	input.close();
+	
+	cout << "archived successfully";
 }
 
 void decompress(char* filename){
 	// opening source file
 	fstream input(filename, ios_base::in | ios_base::binary);
 	if (!input.is_open()){
-		cout << "File " << filename << " does not exist!" << endl;
+		cout << "does not exist!";
 		return;
 	}
 
@@ -384,18 +390,20 @@ void decompress(char* filename){
 	// if source file has extension
 	if (ext_length > 0){
 		ext = new char[ext_length + 1];
-		input.read(ext, sizeof(char) * ext_length);
+		input.read(ext, sizeof(char)* ext_length);
 
 		ext[ext_length] = '\0';
 
-		if (iCompare(getExtension(removeExtension(filename)), ext)){
+		if (iCompare(getExtension(removeExtension(filename), '.'), ext)){
 			out_filename = removeExtension(filename);
-		} else {
+		}
+		else {
 			out_filename = changeExtension(filename, ext);
 		}
-	} else {
+	}
+	else {
 		out_filename = filename;
-		while (getExtension(out_filename).length() != 0){
+		while (getExtension(out_filename, '.').length() != 0){
 			out_filename = removeExtension(out_filename);
 		}
 	}
@@ -403,11 +411,11 @@ void decompress(char* filename){
 	if (ext){
 		delete[] ext;
 	}
-	
+
 	// reading size of binary tree array
 	MAX_RANGE_OF_TREE tree_size;
 	input.read((char*)&tree_size, sizeof(MAX_RANGE_OF_TREE));
-	
+
 	// restoring binary tree from array
 	char* temp = new char[tree_size];
 	input.read(temp, sizeof(char)* tree_size);
@@ -420,7 +428,7 @@ void decompress(char* filename){
 
 	// checking if file is valid archive
 	if (!input.read(&byte, sizeof(char))){
-		cout << "File " << filename << " is not a valid archive!" << endl;
+		cout << "is not a valid archive!";
 		return;
 	}
 	for (int i = 0; i < 8; i++){
@@ -433,9 +441,10 @@ void decompress(char* filename){
 		}
 		if (isPeak(p)){
 			if (p->data != EOF){
-				cout << "File " << filename << " is not a valid archive!" << endl;
+				cout << "is not a valid archive!";
 				return;
-			} else {
+			}
+			else {
 				p = tree;
 			}
 		}
@@ -447,7 +456,7 @@ void decompress(char* filename){
 		output.open(out_filename, ios_base::out | ios_base::binary);
 	}
 	else {
-		cout << "File " << filename << " already extracted!" << endl;
+		cout << "has already extracted!";
 		return;
 	}
 
@@ -472,7 +481,8 @@ void decompress(char* filename){
 							buffer.pop();
 						}
 					}
-				} else {
+				}
+				else {
 					while (!buffer.empty()){
 						output.write((char*)&buffer.front(), sizeof(char));
 						buffer.pop();
@@ -487,17 +497,28 @@ void decompress(char* filename){
 	deleteTree(tree);
 	output.close();
 	input.close();
+
+	cout << "extracted successfully";
 }
 
 int main(int argc, char** argv)
 {
-	char filename[] = "input.exe.bin";
+	setlocale(LC_ALL, "");
 
-	if (iCompare(getExtension(filename), COMPRESSED_EXTENSION)){
-		decompress(filename);
-	} else {
-		compress(filename);
+	if (argc > 1){
+		for (int i = 1; i < argc; i++){
+			cout << "File (" << i << "/" << argc - 1 << ") " 
+				 << getExtension(argv[i], '\\') << " ........ ";
+			if (iCompare(getExtension(argv[i], '.'), COMPRESSED_EXTENSION)){
+				decompress(argv[i]);
+			} else {
+				compress(argv[i]);
+			}
+			cout << endl;
+		}
 	}
 
+	cout << endl << "Press any key to continue";
+	_getch();
 	return 0;
 }
