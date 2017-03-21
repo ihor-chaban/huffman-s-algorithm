@@ -369,7 +369,7 @@ void compress(char* filename){
 
 	output.close();
 	input.close();
-	
+
 	cout << "archived successfully";
 }
 
@@ -418,7 +418,7 @@ void decompress(char* filename){
 
 	// restoring binary tree from array
 	char* temp = new char[tree_size];
-	input.read(temp, sizeof(char)* tree_size);
+	input.read(temp, sizeof(char) * tree_size);
 	Node* tree = restoreTree(temp, tree_size);
 	delete[]temp;
 
@@ -427,6 +427,8 @@ void decompress(char* filename){
 	bool bit = false;
 
 	// checking if file is valid archive
+	bool first_peak = true;
+	queue <char> buffer;
 	if (!input.read(&byte, sizeof(char))){
 		cout << "is not a valid archive!";
 		return;
@@ -440,11 +442,15 @@ void decompress(char* filename){
 			p = p->right;
 		}
 		if (isPeak(p)){
-			if (p->data != EOF){
+			if ((p->data != EOF) && (first_peak)){
 				cout << "is not a valid archive!";
 				return;
 			}
 			else {
+				if (!first_peak){
+					buffer.push(p->data);
+				}
+				first_peak = false;
 				p = tree;
 			}
 		}
@@ -461,7 +467,6 @@ void decompress(char* filename){
 	}
 
 	// restoring source data
-	queue <char> buffer;
 	while (input.read(&byte, sizeof(char))){
 		for (int i = 0; i < 8; i++){
 			bit = ((byte & (1 << (7 - i))) != 0);
@@ -507,11 +512,12 @@ int main(int argc, char** argv)
 
 	if (argc > 1){
 		for (int i = 1; i < argc; i++){
-			cout << "File (" << i << "/" << argc - 1 << ") " 
-				 << getExtension(argv[i], '\\') << " ........ ";
+			cout << "File (" << i << "/" << argc - 1 << ") "
+				<< getExtension(argv[i], '\\') << " ........ ";
 			if (iCompare(getExtension(argv[i], '.'), COMPRESSED_EXTENSION)){
 				decompress(argv[i]);
-			} else {
+			}
+			else {
 				compress(argv[i]);
 			}
 			cout << endl;
