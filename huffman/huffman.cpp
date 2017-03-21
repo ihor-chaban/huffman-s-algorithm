@@ -195,8 +195,8 @@ huffman::Node* huffman::restoreTree(char* input, MAX_RANGE_OF_TREE size){
 		root = temp;
 	}
 
-	while (!current.empty()){
-		while (!current.empty()){
+	while (!current.empty() && !tree_bin.empty()){
+		while (!current.empty() && !tree_bin.empty()){
 			if (!tree_bin.front()){
 				Node* tempL = new Node();
 				Node* tempR = new Node();
@@ -221,6 +221,10 @@ huffman::Node* huffman::restoreTree(char* input, MAX_RANGE_OF_TREE size){
 			}
 		}
 		swap(current, next);
+	}
+
+	if (!current.empty() && tree_bin.empty()){
+		// throw exception "invalid archive"
 	}
 
 	return root;
@@ -436,6 +440,10 @@ void huffman::decompress(){
 	// reading size of binary tree array
 	MAX_RANGE_OF_TREE tree_size;
 	input.read((char*)&tree_size, sizeof(MAX_RANGE_OF_TREE));
+	if (tree_size > 320){
+		std::cout << "is not a valid archive!";
+		return;
+	}
 
 	// restoring binary tree from array
 	char* temp = new char[tree_size];
