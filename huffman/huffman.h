@@ -9,15 +9,11 @@
 
 #ifndef HUFFMAN_H
 #define HUFFMAN_H
-
 #include <map>
 #include <vector>
 
 // file extension after compression
 #define COMPRESSED_EXTENSION "bin"
-
-// max range of binary tree array size in bytes
-#define MAX_RANGE_OF_TREE unsigned short int
 
 class huffman
 {
@@ -39,9 +35,9 @@ public:
 	char* getFilename();
 	void setFilename(char*);
 
-	void compress();
-	void decompress();
-	void toggle();
+	bool compress();
+	bool decompress();
+	bool toggle();
 
 private:
 	static bool iCompare(std::string const &, std::string const &);
@@ -56,9 +52,23 @@ private:
 	static std::string removeExtension(std::string);
 
 	void buildTree();
-	static Node* restoreTree(char*, MAX_RANGE_OF_TREE);
+	void restoreTree(char*, unsigned short int);
 	static void buildTable(Node*, std::map <char, std::vector <bool> > &);
 	void treeToBin();
+
+public:
+	class exception{
+	private:
+		char* filename;
+		char* message;
+
+	public:
+		exception();
+		exception(char*, char*);
+		void what();
+		void showFilename();
+		void showMessage();
+	};
 };
 
 #endif HUFFMAN_H

@@ -22,8 +22,11 @@ int main(int argc, char** argv)
 			archiver.setFilename(argv[i]);
 			cout << "File (" << i << "/" << argc - 1 << ") "
 				<< getExtension(argv[i], '\\') << " ........ ";
-			archiver.toggle();
-			cout << endl;
+			try {
+				archiver.toggle();
+			} catch (huffman::exception e){
+				e.showMessage();
+			}
 		}
 	}
 
