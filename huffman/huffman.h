@@ -9,11 +9,9 @@
 
 #ifndef HUFFMAN_H
 #define HUFFMAN_H
+#define COMPRESSED_EXTENSION "huf"
 #include <map>
 #include <vector>
-
-// file extension after compression
-#define COMPRESSED_EXTENSION "bin"
 
 class huffman
 {
