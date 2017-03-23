@@ -387,7 +387,7 @@ bool huffman::compress(){
 	// writing last incomplete byte if exists
 	if (c_buf){
 		for (; c_buf < 8; c_buf++){
-			buffer |= (!table[EOF][0]) << (7 - c_buf++);
+			buffer |= (!table[EOF][0]) << (7 - c_buf);
 		}
 		output.write((char*)&buffer, sizeof(char));
 	}
@@ -465,29 +465,31 @@ bool huffman::decompress(){
 	// checking if file is valid archive
 	bool first_peak = true;
 	std::queue <char> buffer;
-	if (!input.read(&byte, sizeof(char))){
+	if (input.eof()){
 		throw exception(filename, "is not a valid archive!");
 		return 0;
 	}
-	for (int i = 0; i < 8; i++){
-		bit = ((byte & (1 << (7 - i))) != 0);
-		if (bit == 0){
-			p = p->left;
-		}
-		if (bit == 1){
-			p = p->right;
-		}
-		if (isPeak(p)){
-			if ((p->data != EOF) && (first_peak)){
-				throw exception(filename, "is not a valid archive!");
-				return 0;
+	while (first_peak && input.read(&byte, sizeof(char))){
+		for (int i = 0; i < 8; i++){
+			bit = ((byte & (1 << (7 - i))) != 0);
+			if (bit == 0){
+				p = p->left;
 			}
-			else {
-				if (!first_peak){
-					buffer.push(p->data);
+			if (bit == 1){
+				p = p->right;
+			}
+			if (isPeak(p)){
+				if ((p->data != EOF) && (first_peak)){
+					throw exception(filename, "is not a valid archive!");
+					return 0;
 				}
-				first_peak = false;
-				p = tree;
+				else {
+					if (!first_peak){
+						buffer.push(p->data);
+					}
+					first_peak = false;
+					p = tree;
+				}
 			}
 		}
 	}
