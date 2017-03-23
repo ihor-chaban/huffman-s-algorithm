@@ -21,30 +21,30 @@ struct huffman::MyCompare{
 
 huffman::huffman(){
 	filename = "";
-	tree = NULL;
+	root = NULL;
 }
 
 huffman::huffman(const huffman &obj){
 	filename = obj.filename;
-	tree = obj.tree;
-	tree_bin = obj.tree_bin;
+	root = obj.root;
+	tree_bool = obj.tree_bool;
 }
 
 huffman::huffman(char* filename){
 	this->filename = filename;
-	tree = NULL;
+	root = NULL;
 }
 
 huffman& huffman::operator=(const huffman &obj){
 	filename = obj.filename;
-	tree = obj.tree;
-	tree_bin = obj.tree_bin;
+	root = obj.root;
+	tree_bool = obj.tree_bool;
 	return *this;
 }
 
 huffman::~huffman(){
-	if (tree){
-		deleteTree(tree);
+	if (root){
+		deleteTree(root);
 	}
 }
 
@@ -69,38 +69,38 @@ bool huffman::iCompare(std::string const &a, std::string const &b){
 	return false;
 }
 
-inline bool huffman::isPeak(Node* root){
-	return ((root->left == NULL) && (root->right == NULL));
+inline bool huffman::isPeak(Node* node){
+	return ((node->left == NULL) && (node->right == NULL));
 }
 
-void huffman::printTree(Node* tree, unsigned int indent = 0){
-	if (tree){
-		if (tree->right){
-			printTree(tree->right, indent + 3);
+void huffman::printTree(Node* node, unsigned int indent = 0){
+	if (node){
+		if (node->right){
+			printTree(node->right, indent + 3);
 		}
 
 		for (unsigned int i = 0; i < indent; i++){
 			std::cout << " ";
 		}
 
-		std::cout << tree->number;
-		if (isPeak(tree)){
-			std::cout << "(" << tree->data << ")";
+		std::cout << node->number;
+		if (isPeak(node)){
+			std::cout << "(" << node->data << ")";
 		}
 		std::cout << std::endl;
 
-		if (tree->left){
-			printTree(tree->left, indent + 3);
+		if (node->left){
+			printTree(node->left, indent + 3);
 		}
 	}
 }
 
-void huffman::deleteTree(Node* &tree){
-	if (tree){
-		deleteTree(tree->left);
-		deleteTree(tree->right);
-		delete tree;
-		tree = NULL;
+void huffman::deleteTree(Node* &node){
+	if (node){
+		deleteTree(node->left);
+		deleteTree(node->right);
+		delete node;
+		node = NULL;
 	}
 }
 
@@ -132,9 +132,9 @@ void huffman::buildTree(){
 	std::map <char, unsigned long int> count;
 	std::fstream input(filename, std::ios_base::in | std::ios_base::binary);
 	if (input.is_open()){
-		char temp;
-		while (input.read(&temp, sizeof(char))){
-			count[temp]++;
+		char temp_byte;
+		while (input.read(&temp_byte, sizeof(char))){
+			count[temp_byte]++;
 		}
 		count[EOF]++;
 	} else {
@@ -144,72 +144,72 @@ void huffman::buildTree(){
 
 	std::deque <Node*> nodes;
 	for (std::map<char, unsigned long int>::iterator i = count.begin(); i != count.end(); i++){
-		Node *temp = new Node();
-		temp->data = i->first;
-		temp->number = i->second;
-		nodes.push_front(temp);
+		Node *temp_node = new Node();
+		temp_node->data = i->first;
+		temp_node->number = i->second;
+		nodes.push_front(temp_node);
 	}
 
 	while (nodes.size() != 1){
 		std::sort(nodes.begin(), nodes.end(), MyCompare());
-		Node* temp = new Node();
-		temp->left = nodes.front();
-		temp->number = nodes.front()->number;
+		Node* temp_node = new Node();
+		temp_node->left = nodes.front();
+		temp_node->number = nodes.front()->number;
 		nodes.pop_front();
-		temp->right = nodes.front();
-		temp->number += nodes.front()->number;
+		temp_node->right = nodes.front();
+		temp_node->number += nodes.front()->number;
 		nodes.pop_front();
-		nodes.push_front(temp);
+		nodes.push_front(temp_node);
 	}
 
-	tree = nodes.front();
+	root = nodes.front();
 }
 
 void huffman::restoreTree(char* input, unsigned short int size){
-	std::deque <bool> tree_bin_temp;
+	std::deque <bool> tree_bool_temp;
 	for (unsigned int i = 0; i < size; i++){
 		for (unsigned int j = 0; j < 8; j++){
-			tree_bin_temp.push_back((input[i] & (1 << (7 - j))) != 0);
+			tree_bool_temp.push_back((input[i] & (1 << (7 - j))) != 0);
 		}
 	}
 
-	Node* root = NULL;
+	Node* temp_root = NULL;
 	std::deque <Node*> current, next;
-	if ((!tree_bin_temp.empty()) && (!tree_bin_temp.front())){
-		Node* temp = new Node();
-		Node* tempL = new Node();
-		Node* tempR = new Node();
+	if ((!tree_bool_temp.empty()) && (!tree_bool_temp.front())){
+		Node* temp_node = new Node();
+		Node* temp_left = new Node();
+		Node* temp_right = new Node();
 
-		temp->left = tempL;
-		temp->right = tempR;
+		temp_node->left = temp_left;
+		temp_node->right = temp_right;
 
-		current.push_back(tempL);
-		current.push_back(tempR);
+		current.push_back(temp_left);
+		current.push_back(temp_right);
 
-		tree_bin_temp.pop_front();
-		root = temp;
+		tree_bool_temp.pop_front();
+		temp_root = temp_node;
 	}
 
-	while ((!current.empty()) && (!tree_bin_temp.empty())){
-		while ((!current.empty()) && (!tree_bin_temp.empty())){
-			if (!tree_bin_temp.front()){
-				Node* tempL = new Node();
-				Node* tempR = new Node();
+	while ((!current.empty()) && (!tree_bool_temp.empty())){
+		while ((!current.empty()) && (!tree_bool_temp.empty())){
+			if (!tree_bool_temp.front()){
+				Node* temp_left = new Node();
+				Node* temp_right = new Node();
 
-				current.front()->left = tempL;
-				current.front()->right = tempR;
+				current.front()->left = temp_left;
+				current.front()->right = temp_right;
 
-				next.push_back(tempL);
-				next.push_back(tempR);
+				next.push_back(temp_left);
+				next.push_back(temp_right);
 
 				current.pop_front();
-				tree_bin_temp.pop_front();
+				tree_bool_temp.pop_front();
 			} else {
 				current.front()->data = 0;
-				tree_bin_temp.pop_front();
+				tree_bool_temp.pop_front();
 				for (int i = 0; i < 8; i++){
-					current.front()->data |= tree_bin_temp.front() << (7 - i);
-					tree_bin_temp.pop_front();
+					current.front()->data |= tree_bool_temp.front() << (7 - i);
+					tree_bool_temp.pop_front();
 				}
 				current.pop_front();
 			}
@@ -217,28 +217,28 @@ void huffman::restoreTree(char* input, unsigned short int size){
 		swap(current, next);
 	}
 
-	if ((!current.empty()) && (tree_bin_temp.empty())){
-		tree = NULL;
+	if ((!current.empty()) && (tree_bool_temp.empty())){
+		root = NULL;
 	} else {
-		tree = root;
+		root = temp_root;
 	}
 }
 
-void huffman::buildTable(Node* root, std::map <char, std::vector <bool> > &table){
+void huffman::buildTable(Node* node, std::map <char, std::vector <bool> > &table){
 	static std::vector <bool> code;
-	if (root){
-		if (root->left){
+	if (node){
+		if (node->left){
 			code.push_back(0);
-			buildTable(root->left, table);
+			buildTable(node->left, table);
 		}
 
-		if (root->right){
+		if (node->right){
 			code.push_back(1);
-			buildTable(root->right, table);
+			buildTable(node->right, table);
 		}
 
-		if (isPeak(root)){
-			table[root->data] = code;
+		if (isPeak(node)){
+			table[node->data] = code;
 		}
 
 		if (!code.empty()){
@@ -247,10 +247,10 @@ void huffman::buildTable(Node* root, std::map <char, std::vector <bool> > &table
 	}
 }
 
-void huffman::treeToBin(){
+void huffman::treeToBool(){
 	std::deque <Node> first;
 
-	first.push_back(*tree);
+	first.push_back(*root);
 	int start_index = 0;
 	for (int i = start_index; i != first.size(); i++){
 		if (first[i].left){
@@ -277,7 +277,7 @@ void huffman::treeToBin(){
 		}
 	}
 
-	tree_bin = second;
+	tree_bool = second;
 }
 
 bool huffman::compress(){
@@ -298,15 +298,15 @@ bool huffman::compress(){
 
 	// building map of chars and its binary code
 	std::map <char, std::vector <bool> > table;
-	buildTable(tree, table);
+	buildTable(root, table);
 
 	// converting binary tree into binary array
-	treeToBin();
+	treeToBool();
 
-	deleteTree(tree);
+	deleteTree(root);
 
 	// converting size of binary tree array from bits to bytes
-	unsigned short int tree_size = static_cast <unsigned short int> (ceil(tree_bin.size() / 8.0));
+	unsigned short int tree_size = static_cast <unsigned short int> (ceil(tree_bool.size() / 8.0));
 
 	// opening binary output
 	std::fstream output(out_filename);
@@ -326,8 +326,8 @@ bool huffman::compress(){
 	// writing binary tree array and its size
 	output.write((char*)&tree_size, sizeof(unsigned short int));
 	char buffer = 0, c_buf = 0;
-	for (unsigned int i = 0; i < tree_bin.size(); i++){
-		buffer |= tree_bin[i] << (7 - c_buf++);
+	for (unsigned int i = 0; i < tree_bool.size(); i++){
+		buffer |= tree_bool[i] << (7 - c_buf++);
 		if (c_buf == 8){
 			output.write((char*)&buffer, sizeof(char));
 			c_buf = 0;
@@ -340,11 +340,11 @@ bool huffman::compress(){
 
 
 	buffer = 0; c_buf = 0;
-	char temp;
+	char temp_byte;
 
 	// adding EOF marker at start of encoded data
-	temp = EOF;
-	for (std::vector <bool>::iterator i = table[temp].begin(); i != table[temp].end(); i++){
+	temp_byte = EOF;
+	for (std::vector <bool>::iterator i = table[temp_byte].begin(); i != table[temp_byte].end(); i++){
 		buffer |= (*i) << (7 - c_buf++);
 		if (c_buf == 8){
 			output.write((char*)&buffer, sizeof(char));
@@ -354,8 +354,8 @@ bool huffman::compress(){
 	}
 
 	// replacement of source data by its binary codes
-	while (input.read(&temp, sizeof(char))){
-		for (std::vector <bool>::iterator i = table[temp].begin(); i != table[temp].end(); i++){
+	while (input.read(&temp_byte, sizeof(char))){
+		for (std::vector <bool>::iterator i = table[temp_byte].begin(); i != table[temp_byte].end(); i++){
 			buffer |= (*i) << (7 - c_buf++);
 			if (c_buf == 8){
 				output.write((char*)&buffer, sizeof(char));
@@ -366,8 +366,8 @@ bool huffman::compress(){
 	}
 
 	// adding EOF marker in end of encoded data
-	temp = EOF;
-	for (std::vector <bool>::iterator i = table[temp].begin(); i != table[temp].end(); i++){
+	temp_byte = EOF;
+	for (std::vector <bool>::iterator i = table[temp_byte].begin(); i != table[temp_byte].end(); i++){
 		buffer |= (*i) << (7 - c_buf++);
 		if (c_buf == 8){
 			output.write((char*)&buffer, sizeof(char));
@@ -437,18 +437,18 @@ bool huffman::decompress(){
 	}
 
 	// restoring binary tree from array
-	char* temp = new char[tree_size];
-	input.read(temp, sizeof(char)* tree_size);
-	restoreTree(temp, tree_size);
-	delete[] temp;
-	temp = NULL;
+	char* temp_bytes = new char[tree_size];
+	input.read(temp_bytes, sizeof(char)* tree_size);
+	restoreTree(temp_bytes, tree_size);
+	delete[] temp_bytes;
+	temp_bytes = NULL;
 
-	if (!tree){
+	if (!root){
 		throw exception(filename, "is not a valid archive!");
 		return 0;
 	}
 
-	Node* p = tree;
+	Node* p = root;
 	char byte;
 	bool bit = false;
 
@@ -477,7 +477,7 @@ bool huffman::decompress(){
 						buffer.push_back(p->data);
 					}
 					first_peak = false;
-					p = tree;
+					p = root;
 				}
 			}
 		}
@@ -519,12 +519,12 @@ bool huffman::decompress(){
 					}
 					buffer.push_back(EOF);
 				}
-				p = tree;
+				p = root;
 			}
 		}
 	}
 
-	deleteTree(tree);
+	deleteTree(root);
 	output.close();
 	input.close();
 

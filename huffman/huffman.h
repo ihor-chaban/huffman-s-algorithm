@@ -21,8 +21,8 @@ private:
 	struct MyCompare;
 
 	char* filename;
-	Node* tree;
-	std::deque <bool> tree_bin;
+	Node* root;
+	std::deque <bool> tree_bool;
 
 public:
 	huffman();
@@ -41,7 +41,7 @@ public:
 private:
 	void buildTree();
 	void restoreTree(char*, unsigned short int);
-	void treeToBin();
+	void treeToBool();
 
 	static void buildTable(Node*, std::map <char, std::vector <bool> > &);
 	
