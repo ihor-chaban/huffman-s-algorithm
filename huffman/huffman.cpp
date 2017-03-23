@@ -132,7 +132,7 @@ void huffman::buildTree(){
 		nodes.push_front(temp_node);
 	}
 
-	// while not left only root assign every node its childs
+	// while not left only root assign every node its children
 	while (nodes.size() != 1){
 		std::sort(nodes.begin(), nodes.end(), MyCompare());
 		Node* temp_node = new Node();
@@ -158,6 +158,7 @@ void huffman::restoreTree(char* input, unsigned short int size){
 	}
 
 	// restoring binary tree from bits
+	// pushing initial nodes of tree
 	Node* temp_root = NULL;
 	std::deque <Node*> current, next;
 	if ((!tree_bool_temp.empty()) && (!tree_bool_temp.front())){
@@ -175,7 +176,7 @@ void huffman::restoreTree(char* input, unsigned short int size){
 		temp_root = temp_node;
 	}
 
-	// while tree is not complete and input not ends
+	// while tree is not complete and input not ends assign every node its children
 	while ((!current.empty()) && (!tree_bool_temp.empty())){
 		while ((!current.empty()) && (!tree_bool_temp.empty())){
 			if (!tree_bool_temp.front()){
@@ -287,7 +288,7 @@ bool huffman::compress(){
 	// building binary tree from input file
 	buildTree();
 
-	// building map of bytes and it binary codes
+	// building map of bytes and its binary codes
 	std::map <char, std::vector <bool> > table;
 	buildTable(root, table);
 
