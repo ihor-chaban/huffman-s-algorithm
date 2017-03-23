@@ -10,6 +10,7 @@
 #ifndef HUFFMAN_H
 #define HUFFMAN_H
 #define COMPRESSED_EXTENSION "huf"
+#include <deque>
 #include <map>
 #include <vector>
 
@@ -21,7 +22,7 @@ private:
 
 	char* filename;
 	Node* tree;
-	std::vector <bool> tree_bin;
+	std::deque <bool> tree_bin;
 
 public:
 	huffman();
@@ -30,29 +31,30 @@ public:
 	huffman &operator=(const huffman &);
 	~huffman();
 
-	char* getFilename();
-	void setFilename(char*);
-
 	bool compress();
 	bool decompress();
 	bool toggle();
 
+	char* getFilename();
+	void setFilename(char*);
+
 private:
-	static bool iCompare(std::string const &, std::string const &);
+	void buildTree();
+	void restoreTree(char*, unsigned short int);
+	void treeToBin();
+
+	static void buildTable(Node*, std::map <char, std::vector <bool> > &);
+	
 	static inline bool isPeak(Node*);
 
 	static void printTree(Node*, unsigned int);
 	static void deleteTree(Node* &);
 
+	static bool iCompare(std::string const &, std::string const &);
 	static std::string addExtension(std::string, std::string);
 	static std::string changeExtension(std::string, std::string);
 	static std::string getExtension(std::string, char);
 	static std::string removeExtension(std::string);
-
-	void buildTree();
-	void restoreTree(char*, unsigned short int);
-	static void buildTable(Node*, std::map <char, std::vector <bool> > &);
-	void treeToBin();
 
 public:
 	class exception{
