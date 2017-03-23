@@ -1,9 +1,9 @@
 /////////////////////////////////////////////////
 //											   //
-//	Implementation of data compression and	   //
-//	decompression using Huffman's algorithm	   //
+//	 Implementation of data compression and	   //
+//	  decompression using Huffman algorithm	   //
 //											   //
-//			Author - Ihor Chaban			   //
+//			 Author - Ihor Chaban			   //
 //											   //
 /////////////////////////////////////////////////
 
@@ -44,10 +44,7 @@ private:
 	void treeToBool();
 
 	static void buildTable(Node*, std::map <char, std::vector <bool> > &);
-	
 	static inline bool isPeak(Node*);
-
-	static void printTree(Node*, unsigned int);
 	static void deleteTree(Node* &);
 
 	static bool iCompare(std::string const &, std::string const &);

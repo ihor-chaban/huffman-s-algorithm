@@ -23,6 +23,28 @@ string getExtension(string input, char delim){
 	}
 }
 
+//void huffman::printTree(Node* node, unsigned int indent = 0){
+//	if (node){
+//		if (node->right){
+//			printTree(node->right, indent + 3);
+//		}
+//
+//		for (unsigned int i = 0; i < indent; i++){
+//			std::cout << " ";
+//		}
+//
+//		std::cout << node->number;
+//		if (isPeak(node)){
+//			std::cout << "(" << node->data << ")";
+//		}
+//		std::cout << std::endl;
+//
+//		if (node->left){
+//			printTree(node->left, indent + 3);
+//		}
+//	}
+//}
+
 int main(int argc, char** argv)
 {
 	setlocale(LC_ALL, "");
