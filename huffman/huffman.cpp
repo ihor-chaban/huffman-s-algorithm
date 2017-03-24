@@ -262,7 +262,6 @@ void huffman::treeToBool(){
 	for (unsigned int i = 0; i < first.size(); i++){
 		if (isPeak(&first[i])){
 			second.push_back(1);
-
 			for (int j = 7; j >= 0; j--){
 				second.push_back((first[i].data >> j) & 1);
 			}
@@ -275,14 +274,14 @@ void huffman::treeToBool(){
 }
 
 bool huffman::compress(){
-	// opening source file
+	// opening input
 	std::fstream input(filename, std::ios_base::in | std::ios_base::binary);
 	if (!input.is_open()){
 		throw exception(filename, "does not exist!");
 		return 0;
 	}
 
-	// getting source file extension
+	// getting input file extension
 	std::string ext = getExtension(filename, '.');
 	char ext_length = ext.length();
 	std::string out_filename = addExtension(filename, COMPRESSED_EXTENSION);
@@ -302,7 +301,7 @@ bool huffman::compress(){
 	// converting size of binary tree code from bits to bytes
 	unsigned short int tree_size = static_cast <unsigned short int> (ceil(tree_bool.size() / 8.0));
 
-	// opening output file
+	// opening output if not already exists
 	std::fstream output(out_filename);
 	if (!output.is_open()){
 		output.open(out_filename, std::ios_base::out | std::ios_base::binary);
@@ -311,7 +310,7 @@ bool huffman::compress(){
 		return 0;
 	}
 
-	// writing source file extension and its length
+	// writing input file extension and its length
 	output.write((char*)&ext_length, sizeof(char));
 	for (int i = 0; i < ext_length; i++){
 		output.write((char*)&ext[i], sizeof(char));
@@ -346,7 +345,7 @@ bool huffman::compress(){
 		}
 	}
 
-	// replacement of source data by its binary codes
+	// replacing source data by its binary codes
 	while (input.read(&temp_byte, sizeof(char))){
 		for (unsigned int i = 0; i < table[unsigned char(temp_byte)].size(); i++){
 			buffer |= table[unsigned char(temp_byte)][i] << (7 - c_buf++);
@@ -384,7 +383,7 @@ bool huffman::compress(){
 }
 
 bool huffman::decompress(){
-	// opening source file
+	// opening input
 	std::fstream input(filename, std::ios_base::in | std::ios_base::binary);
 	if (!input.is_open()){
 		throw exception(filename, "does not exist!");
@@ -402,22 +401,18 @@ bool huffman::decompress(){
 		ext = new char[ext_length + 1];
 		input.read(ext, sizeof(char)* ext_length);
 		ext[ext_length] = '\0';
-
 		if (iCompare(getExtension(removeExtension(filename), '.'), ext)){
 			out_filename = removeExtension(filename);
 		} else {
 			out_filename = changeExtension(filename, ext);
 		}
-	} else {
-		out_filename = filename;
-		while (getExtension(out_filename, '.').length() != 0){
-			out_filename = removeExtension(out_filename);
-		}
-	}
-
-	if (ext){
 		delete[] ext;
 		ext = NULL;
+	} else {
+		out_filename = filename;
+		while (getExtension(out_filename, '.').length()){
+			out_filename = removeExtension(out_filename);
+		}
 	}
 
 	// reading size of binary tree code
@@ -437,14 +432,8 @@ bool huffman::decompress(){
 	delete[] temp_bytes;
 	temp_bytes = NULL;
 
-	// if tree is empty after restoring
-	if (!root){
-		throw exception(filename, "is not a valid archive!");
-		return 0;
-	}
-
-	// if input ends
-	if (input.eof()){
+	// if tree is empty after restoring of input ends
+	if ((!root) || (input.eof())){
 		throw exception(filename, "is not a valid archive!");
 		return 0;
 	}
@@ -458,11 +447,10 @@ bool huffman::decompress(){
 	while ((first_peak) && (input.read(&byte, sizeof(char)))){
 		for (int i = 0; i < 8; i++){
 			bit = ((byte & (1 << (7 - i))) != 0);
-			if (bit == 0){
-				p = p->left;
-			}
-			if (bit == 1){
+			if (bit){
 				p = p->right;
+			} else {
+				p = p->left;
 			}
 			if (isPeak(p)){
 				if ((p->data != EOF) && (first_peak)){
@@ -479,7 +467,7 @@ bool huffman::decompress(){
 		}
 	}
 
-	// checking if source file already exists
+	// opening output if not already exists
 	std::fstream output(out_filename);
 	if (!output.is_open()){
 		output.open(out_filename, std::ios_base::out | std::ios_base::binary);
@@ -492,12 +480,10 @@ bool huffman::decompress(){
 	while (input.read(&byte, sizeof(char))){
 		for (int i = 0; i < 8; i++){
 			bit = ((byte & (1 << (7 - i))) != 0);
-
-			if (bit == 0){
-				p = p->left;
-			}
-			if (bit == 1){
+			if (bit){
 				p = p->right;
+			} else {
+				p = p->left;
 			}
 			if (isPeak(p)){
 				if (p->data != EOF){
