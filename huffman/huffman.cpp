@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <climits>
 #include <deque>
 #include <fstream>
 #include <iostream>
@@ -14,7 +15,7 @@ struct huffman::Node{
 
 struct huffman::MyCompare{
 	bool operator () (Node* left, Node* right) const{
-		return (left->number < right->number);
+		return (left->number > right->number);
 	}
 };
 
@@ -108,7 +109,7 @@ std::string huffman::removeExtension(std::string input){
 
 void huffman::buildTree(){
 	// counting the repetitions of each byte
-	std::vector <unsigned long int> count(256);
+	std::vector <unsigned long int> count(UCHAR_MAX + 1);
 	std::fstream input(filename, std::ios_base::in | std::ios_base::binary);
 	if (input.is_open()){
 		char temp_byte;
@@ -123,13 +124,13 @@ void huffman::buildTree(){
 
 	// building binary tree from count
 	// creating and pushing all nodes
-	std::deque <Node*> nodes;
+	std::vector <Node*> nodes;
 	for (unsigned int i = 0; i < count.size(); i++){
 		if (count[i]){
 			Node *temp_node = new Node();
 			temp_node->data = i;
 			temp_node->number = count[i];
-			nodes.push_front(temp_node);
+			nodes.push_back(temp_node);
 		}
 	}
 
@@ -137,13 +138,13 @@ void huffman::buildTree(){
 	while (nodes.size() != 1){
 		std::sort(nodes.begin(), nodes.end(), MyCompare());
 		Node* temp_node = new Node();
-		temp_node->left = nodes.front();
-		temp_node->number = nodes.front()->number;
-		nodes.pop_front();
-		temp_node->right = nodes.front();
-		temp_node->number += nodes.front()->number;
-		nodes.pop_front();
-		nodes.push_front(temp_node);
+		temp_node->left = nodes.back();
+		temp_node->number = nodes.back()->number;
+		nodes.pop_back();
+		temp_node->right = nodes.back();
+		temp_node->number += nodes.back()->number;
+		nodes.pop_back();
+		nodes.push_back(temp_node);
 	}
 
 	root = nodes.front();
@@ -290,7 +291,7 @@ bool huffman::compress(){
 	buildTree();
 
 	// building map of bytes and its binary codes
-	std::vector <std::vector <bool> > table (256);
+	std::vector <std::vector <bool> > table(UCHAR_MAX + 1);
 	buildTable(root, table);
 
 	// converting binary tree into binary code

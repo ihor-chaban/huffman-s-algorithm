@@ -28,7 +28,7 @@ int main(int argc, char** argv)
 	setlocale(LC_ALL, "");
 	huffman archiver;
 
-	/*bool archiving;
+	bool archiving;
 	unsigned long int to_archive = 0, archived = 0, to_extract = 0, extracted = 0;
 	unsigned long int start_time, end_time, result_time;
 	
@@ -106,10 +106,7 @@ int main(int argc, char** argv)
 		cout << "." << endl;
 	} else {
 		cout << ">> There is nothing to work with. Drag files into app or use console." << endl;
-	}*/
-
-	archiver.setFilename("Koala.jpg");
-	archiver.compress();
+	}
 
 	std::system("pause");
 	return 0;
