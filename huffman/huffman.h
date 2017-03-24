@@ -11,7 +11,7 @@
 #define HUFFMAN_H
 #define COMPRESSED_EXTENSION "huf"
 #include <deque>
-#include <map>
+#include <unordered_map>
 #include <vector>
 
 class huffman
@@ -43,7 +43,7 @@ private:
 	void restoreTree(char*, unsigned short int);
 	void treeToBool();
 
-	static void buildTable(Node*, std::map <char, std::vector <bool> > &);
+	static void buildTable(Node*, std::unordered_map <char, std::vector <bool> > &);
 	static inline bool isPeak(Node*);
 	static void deleteTree(Node* &);
 

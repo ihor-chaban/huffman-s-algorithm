@@ -2,8 +2,8 @@
 #include <deque>
 #include <fstream>
 #include <iostream>
-#include <map>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include "huffman.h"
 
@@ -109,7 +109,7 @@ std::string huffman::removeExtension(std::string input){
 
 void huffman::buildTree(){
 	// counting the repetitions of each byte
-	std::map <char, unsigned long int> count;
+	std::unordered_map <char, unsigned long int> count;
 	std::fstream input(filename, std::ios_base::in | std::ios_base::binary);
 	if (input.is_open()){
 		char temp_byte;
@@ -125,7 +125,7 @@ void huffman::buildTree(){
 	// building binary tree from count
 	// creating and pushing all nodes
 	std::deque <Node*> nodes;
-	for (std::map<char, unsigned long int>::iterator i = count.begin(); i != count.end(); i++){
+	for (std::unordered_map<char, unsigned long int>::iterator i = count.begin(); i != count.end(); i++){
 		Node *temp_node = new Node();
 		temp_node->data = i->first;
 		temp_node->number = i->second;
@@ -213,7 +213,7 @@ void huffman::restoreTree(char* input, unsigned short int size){
 }
 
 // building binary codes map for each byte
-void huffman::buildTable(Node* node, std::map <char, std::vector <bool> > &table){
+void huffman::buildTable(Node* node, std::unordered_map <char, std::vector <bool> > &table){
 	static std::vector <bool> code;
 	if (node){
 		if (node->left){
@@ -289,7 +289,7 @@ bool huffman::compress(){
 	buildTree();
 
 	// building map of bytes and its binary codes
-	std::map <char, std::vector <bool> > table;
+	std::unordered_map <char, std::vector <bool> > table;
 	buildTable(root, table);
 
 	// converting binary tree into binary code
