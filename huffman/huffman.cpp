@@ -3,7 +3,6 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <unordered_map>
 #include <vector>
 #include "huffman.h"
 
@@ -109,14 +108,14 @@ std::string huffman::removeExtension(std::string input){
 
 void huffman::buildTree(){
 	// counting the repetitions of each byte
-	std::unordered_map <char, unsigned long int> count;
+	std::vector <unsigned long int> count(256);
 	std::fstream input(filename, std::ios_base::in | std::ios_base::binary);
 	if (input.is_open()){
 		char temp_byte;
 		while (input.read(&temp_byte, sizeof(char))){
-			count[temp_byte]++;
+			count[unsigned char(temp_byte)]++;
 		}
-		count[EOF]++;
+		count[unsigned char(EOF)]++;
 	} else {
 		return;
 	}
@@ -125,11 +124,13 @@ void huffman::buildTree(){
 	// building binary tree from count
 	// creating and pushing all nodes
 	std::deque <Node*> nodes;
-	for (std::unordered_map<char, unsigned long int>::iterator i = count.begin(); i != count.end(); i++){
-		Node *temp_node = new Node();
-		temp_node->data = i->first;
-		temp_node->number = i->second;
-		nodes.push_front(temp_node);
+	for (unsigned int i = 0; i < count.size(); i++){
+		if (count[i]){
+			Node *temp_node = new Node();
+			temp_node->data = i;
+			temp_node->number = count[i];
+			nodes.push_front(temp_node);
+		}
 	}
 
 	// while not left only root assign every node its children
@@ -213,7 +214,7 @@ void huffman::restoreTree(char* input, unsigned short int size){
 }
 
 // building binary codes map for each byte
-void huffman::buildTable(Node* node, std::unordered_map <char, std::vector <bool> > &table){
+void huffman::buildTable(Node* node, std::vector <std::vector <bool> > &table){
 	static std::vector <bool> code;
 	if (node){
 		if (node->left){
@@ -227,7 +228,7 @@ void huffman::buildTable(Node* node, std::unordered_map <char, std::vector <bool
 		}
 
 		if (isPeak(node)){
-			table[node->data] = code;
+			table[unsigned char(node->data)] = code;
 		}
 
 		if (!code.empty()){
@@ -289,7 +290,7 @@ bool huffman::compress(){
 	buildTree();
 
 	// building map of bytes and its binary codes
-	std::unordered_map <char, std::vector <bool> > table;
+	std::vector <std::vector <bool> > table (256);
 	buildTable(root, table);
 
 	// converting binary tree into binary code
@@ -335,8 +336,8 @@ bool huffman::compress(){
 
 	// adding EOF marker at start of encoded data
 	temp_byte = EOF;
-	for (std::vector <bool>::iterator i = table[temp_byte].begin(); i != table[temp_byte].end(); i++){
-		buffer |= (*i) << (7 - c_buf++);
+	for (unsigned int i = 0; i < table[unsigned char(temp_byte)].size(); i++){
+		buffer |= table[unsigned char(temp_byte)][i] << (7 - c_buf++);
 		if (c_buf == 8){
 			output.write((char*)&buffer, sizeof(char));
 			c_buf = 0;
@@ -346,8 +347,8 @@ bool huffman::compress(){
 
 	// replacement of source data by its binary codes
 	while (input.read(&temp_byte, sizeof(char))){
-		for (std::vector <bool>::iterator i = table[temp_byte].begin(); i != table[temp_byte].end(); i++){
-			buffer |= (*i) << (7 - c_buf++);
+		for (unsigned int i = 0; i < table[unsigned char(temp_byte)].size(); i++){
+			buffer |= table[unsigned char(temp_byte)][i] << (7 - c_buf++);
 			if (c_buf == 8){
 				output.write((char*)&buffer, sizeof(char));
 				c_buf = 0;
@@ -358,8 +359,8 @@ bool huffman::compress(){
 
 	// adding EOF marker in end of encoded data
 	temp_byte = EOF;
-	for (std::vector <bool>::iterator i = table[temp_byte].begin(); i != table[temp_byte].end(); i++){
-		buffer |= (*i) << (7 - c_buf++);
+	for (unsigned int i = 0; i < table[unsigned char(temp_byte)].size(); i++){
+		buffer |= table[unsigned char(temp_byte)][i] << (7 - c_buf++);
 		if (c_buf == 8){
 			output.write((char*)&buffer, sizeof(char));
 			c_buf = 0;
@@ -370,7 +371,7 @@ bool huffman::compress(){
 	// writing last incomplete byte if exists
 	if (c_buf){
 		while(c_buf < 8){
-			buffer |= (!table[EOF][0]) << (7 - c_buf++);
+			buffer |= (!table[unsigned char(EOF)][0]) << (7 - c_buf++);
 		}
 		output.write((char*)&buffer, sizeof(char));
 	}
