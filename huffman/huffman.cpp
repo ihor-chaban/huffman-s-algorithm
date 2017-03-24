@@ -1,3 +1,4 @@
+#include "huffman.h"
 #include <algorithm>
 #include <climits>
 #include <deque>
@@ -5,7 +6,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "huffman.h"
 
 struct huffman::Node{
 	unsigned long int number;

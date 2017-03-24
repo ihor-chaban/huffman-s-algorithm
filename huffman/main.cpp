@@ -108,6 +108,6 @@ int main(int argc, char** argv)
 		cout << ">> There is nothing to work with. Drag files into app or use console." << endl;
 	}
 
-	std::system("pause");
+	system("pause");
 	return 0;
 }
