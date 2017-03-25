@@ -12,6 +12,7 @@ using std::string;
 using std::deque;
 using std::vector;
 using std::ios_base;
+using std::sort;
 using std::endl;
 using std::cerr;
 
