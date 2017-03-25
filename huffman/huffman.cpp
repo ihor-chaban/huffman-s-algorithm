@@ -8,7 +8,7 @@
 #include <vector>
 
 struct huffman::Node{
-	unsigned long int number;
+	unsigned long long int number;
 	char data;
 	Node *left, *right;
 };
@@ -117,7 +117,7 @@ std::string huffman::removeExtension(std::string input){
 
 void huffman::buildTree(){
 	// counting the repetitions of each byte
-	std::vector <unsigned long int> count(UCHAR_MAX + 1);
+	std::vector <unsigned long long int> count(UCHAR_MAX + 1);
 	std::fstream input(filename, std::ios_base::in | std::ios_base::binary);
 	if (input.is_open()){
 		char temp_byte;
