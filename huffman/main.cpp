@@ -26,7 +26,7 @@ string getExtension(string input, char delim){
 int main(int argc, char** argv)
 {
 	setlocale(LC_ALL, "");
-	huffman archiver;
+	huffman &archiver = huffman::getInstance();
 
 	bool archiving;
 	unsigned long int to_archive = 0, archived = 0, to_extract = 0, extracted = 0;

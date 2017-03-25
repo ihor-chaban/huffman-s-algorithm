@@ -24,11 +24,7 @@ private:
 	std::deque <bool> tree_bool;
 
 public:
-	huffman();
-	huffman(const huffman &);
-	huffman(char*);
-	huffman &operator=(const huffman &);
-	~huffman();
+	static huffman& getInstance();
 
 	bool compress();
 	bool decompress();
@@ -38,6 +34,12 @@ public:
 	void setFilename(char*);
 
 private:
+	huffman();
+	huffman(char*);
+	huffman(const huffman &) = delete;
+	huffman &operator=(const huffman &) = delete;
+	~huffman();
+
 	void buildTree();
 	void restoreTree(char*, unsigned short int);
 	void treeToBool();

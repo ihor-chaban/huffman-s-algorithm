@@ -19,27 +19,20 @@ struct huffman::MyCompare{
 	}
 };
 
+huffman& huffman::getInstance()
+{
+	static huffman inst;
+	return inst;
+}
+
 huffman::huffman(){
 	filename = "";
 	root = NULL;
 }
 
-huffman::huffman(const huffman &obj){
-	filename = obj.filename;
-	root = obj.root;
-	tree_bool = obj.tree_bool;
-}
-
 huffman::huffman(char* filename){
 	this->filename = filename;
 	root = NULL;
-}
-
-huffman& huffman::operator=(const huffman &obj){
-	filename = obj.filename;
-	root = obj.root;
-	tree_bool = obj.tree_bool;
-	return *this;
 }
 
 huffman::~huffman(){
