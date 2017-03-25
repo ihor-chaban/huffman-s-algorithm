@@ -43,8 +43,10 @@ private:
 	void treeToBool();
 
 	static void buildTable(Node*, std::vector <std::vector <bool> > &);
-	static inline bool isPeak(Node*);
 	static void deleteTree(Node* &);
+	static inline bool isPeak(Node*);
+	static inline bool getBit(char, unsigned char);
+	static inline char setBit(char, bool, unsigned char);
 
 	static bool iCompare(std::string const &, std::string const &);
 	static std::string addExtension(std::string, std::string);

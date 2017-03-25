@@ -70,6 +70,14 @@ bool huffman::iCompare(std::string const &a, std::string const &b){
 	return false;
 }
 
+inline bool huffman::getBit(char var, unsigned char pos){
+	return (((var) & (1 << pos)) != 0);
+}
+
+inline char huffman::setBit(char var, bool value, unsigned char pos){
+	return ((var) | (value << pos));
+}
+
 inline bool huffman::isPeak(Node* node){
 	return ((node->left == NULL) && (node->right == NULL));
 }
@@ -84,7 +92,7 @@ void huffman::deleteTree(Node* &node){
 }
 
 std::string huffman::addExtension(std::string input, std::string extension){
-	return input + '.' + extension;
+	return (input + '.' + extension);
 }
 
 std::string huffman::changeExtension(std::string input, std::string extension){
@@ -153,9 +161,9 @@ void huffman::buildTree(){
 void huffman::restoreTree(char* input, unsigned short int size){
 	// converting bytes input to bits
 	std::deque <bool> tree_bool_temp;
-	for (unsigned int i = 0; i < size; i++){
-		for (unsigned int j = 0; j < 8; j++){
-			tree_bool_temp.push_back((input[i] & (1 << (7 - j))) != 0);
+	for (int i = 0; i < size; i++){
+		for (int j = 7; j >= 0; j--){
+			tree_bool_temp.push_back(getBit(input[i], j));
 		}
 	}
 
@@ -163,7 +171,7 @@ void huffman::restoreTree(char* input, unsigned short int size){
 	// pushing initial nodes of tree
 	Node* temp_root = NULL;
 	std::deque <Node*> current, next;
-	if ((!tree_bool_temp.empty()) && (!tree_bool_temp.front())){
+	if (!tree_bool_temp.empty() && !tree_bool_temp.front()){
 		Node* temp_node = new Node();
 		Node* temp_left = new Node();
 		Node* temp_right = new Node();
@@ -179,8 +187,8 @@ void huffman::restoreTree(char* input, unsigned short int size){
 	}
 
 	// while tree is not complete and input not ends assign every node its children
-	while ((!current.empty()) && (!tree_bool_temp.empty())){
-		while ((!current.empty()) && (!tree_bool_temp.empty())){
+	while (!current.empty() && !tree_bool_temp.empty()){
+		while (!current.empty() && !tree_bool_temp.empty()){
 			if (!tree_bool_temp.front()){
 				Node* temp_left = new Node();
 				Node* temp_right = new Node();
@@ -196,8 +204,8 @@ void huffman::restoreTree(char* input, unsigned short int size){
 			} else {
 				current.front()->data = 0;
 				tree_bool_temp.pop_front();
-				for (int i = 0; i < 8; i++){
-					current.front()->data |= tree_bool_temp.front() << (7 - i);
+				for (int i = 7; i >= 0; i--){
+					current.front()->data = setBit(current.front()->data, tree_bool_temp.front(), i);
 					tree_bool_temp.pop_front();
 				}
 				current.pop_front();
@@ -207,7 +215,7 @@ void huffman::restoreTree(char* input, unsigned short int size){
 	}
 
 	// if input ends but tree is not complete
-	if ((!current.empty()) && (tree_bool_temp.empty())){
+	if (!current.empty() && tree_bool_temp.empty()){
 		root = NULL;
 	} else {
 		root = temp_root;
@@ -251,7 +259,7 @@ void huffman::treeToBool(){
 		if (first[i].right){
 			first.push_back(*first[i].right);
 		}
-		if ((first[i].left) || (first[i].right)){
+		if (first[i].left || first[i].right){
 			start_index++;
 		}
 	}
@@ -263,7 +271,7 @@ void huffman::treeToBool(){
 		if (isPeak(&first[i])){
 			second.push_back(1);
 			for (int j = 7; j >= 0; j--){
-				second.push_back((first[i].data >> j) & 1);
+				second.push_back(getBit(first[i].data, j));
 			}
 		} else {
 			second.push_back(0);
@@ -320,7 +328,7 @@ bool huffman::compress(){
 	output.write((char*)&tree_size, sizeof(unsigned short int));
 	char buffer = 0, c_buf = 0;
 	for (unsigned int i = 0; i < tree_bool.size(); i++){
-		buffer |= tree_bool[i] << (7 - c_buf++);
+		buffer = setBit(buffer, tree_bool[i], 7 - c_buf++);
 		if (c_buf == 8){
 			output.write((char*)&buffer, sizeof(char));
 			c_buf = 0;
@@ -337,7 +345,7 @@ bool huffman::compress(){
 	// adding EOF marker at start of encoded data
 	temp_byte = EOF;
 	for (unsigned int i = 0; i < table[unsigned char(temp_byte)].size(); i++){
-		buffer |= table[unsigned char(temp_byte)][i] << (7 - c_buf++);
+		buffer = setBit(buffer, table[unsigned char(temp_byte)][i], 7 - c_buf++);
 		if (c_buf == 8){
 			output.write((char*)&buffer, sizeof(char));
 			c_buf = 0;
@@ -348,7 +356,7 @@ bool huffman::compress(){
 	// replacing source data by its binary codes
 	while (input.read(&temp_byte, sizeof(char))){
 		for (unsigned int i = 0; i < table[unsigned char(temp_byte)].size(); i++){
-			buffer |= table[unsigned char(temp_byte)][i] << (7 - c_buf++);
+			buffer = setBit(buffer, table[unsigned char(temp_byte)][i], 7 - c_buf++);
 			if (c_buf == 8){
 				output.write((char*)&buffer, sizeof(char));
 				c_buf = 0;
@@ -360,7 +368,7 @@ bool huffman::compress(){
 	// adding EOF marker in end of encoded data
 	temp_byte = EOF;
 	for (unsigned int i = 0; i < table[unsigned char(temp_byte)].size(); i++){
-		buffer |= table[unsigned char(temp_byte)][i] << (7 - c_buf++);
+		buffer = setBit(buffer, table[unsigned char(temp_byte)][i], 7 - c_buf++);
 		if (c_buf == 8){
 			output.write((char*)&buffer, sizeof(char));
 			c_buf = 0;
@@ -371,7 +379,7 @@ bool huffman::compress(){
 	// writing last incomplete byte if exists
 	if (c_buf){
 		while(c_buf < 8){
-			buffer |= (!table[unsigned char(EOF)][0]) << (7 - c_buf++);
+			buffer = setBit(buffer, !table[unsigned char(EOF)][0], 7 - c_buf++);
 		}
 		output.write((char*)&buffer, sizeof(char));
 	}
@@ -433,7 +441,7 @@ bool huffman::decompress(){
 	temp_bytes = NULL;
 
 	// if tree is empty after restoring of input ends
-	if ((!root) || (input.eof())){
+	if (!root || input.eof()){
 		throw exception(filename, "is not a valid archive!");
 		return 0;
 	}
@@ -444,9 +452,9 @@ bool huffman::decompress(){
 	char byte;
 	bool bit = false;
 	bool first_peak = true;
-	while ((first_peak) && (input.read(&byte, sizeof(char)))){
-		for (int i = 0; i < 8; i++){
-			bit = ((byte & (1 << (7 - i))) != 0);
+	while (first_peak && input.read(&byte, sizeof(char))){
+		for (int i = 7; i >= 0; i--){
+			bit = getBit(byte, i);
 			if (bit){
 				p = p->right;
 			} else {
@@ -478,8 +486,8 @@ bool huffman::decompress(){
 
 	// restoring source data
 	while (input.read(&byte, sizeof(char))){
-		for (int i = 0; i < 8; i++){
-			bit = ((byte & (1 << (7 - i))) != 0);
+		for (int i = 7; i >= 0; i--){
+			bit = getBit(byte, i);
 			if (bit){
 				p = p->right;
 			} else {
