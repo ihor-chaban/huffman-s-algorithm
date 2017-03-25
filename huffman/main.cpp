@@ -103,7 +103,7 @@ int main(int argc, char** argv)
 		if (result_time){
 			cout << result_time << "ms";
 		};
-		cout << "." << endl;
+		cout << "." << '\a' <<endl;
 	} else {
 		cout << ">> There is nothing to work with. Drag files into app or use console." << endl;
 	}

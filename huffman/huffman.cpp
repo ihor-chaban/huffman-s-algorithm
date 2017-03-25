@@ -30,11 +30,6 @@ huffman::huffman(){
 	root = NULL;
 }
 
-huffman::huffman(char* filename){
-	this->filename = filename;
-	root = NULL;
-}
-
 huffman::~huffman(){
 	if (root){
 		deleteTree(root);

@@ -35,7 +35,6 @@ public:
 
 private:
 	huffman();
-	huffman(char*);
 	huffman(const huffman &) = delete;
 	huffman &operator=(const huffman &) = delete;
 	~huffman();
