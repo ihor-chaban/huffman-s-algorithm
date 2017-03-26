@@ -28,8 +28,7 @@ struct huffman::MyCompare{
 	}
 };
 
-huffman& huffman::getInstance()
-{
+huffman& huffman::getInstance(){
 	static huffman inst;
 	return inst;
 }
@@ -172,13 +171,10 @@ void huffman::restoreTree(char* input, unsigned short int size){
 		Node* temp_node = new Node();
 		Node* temp_left = new Node();
 		Node* temp_right = new Node();
-
 		temp_node->left = temp_left;
 		temp_node->right = temp_right;
-
 		current.push_back(temp_left);
 		current.push_back(temp_right);
-
 		tree_bool_temp.pop_front();
 		temp_root = temp_node;
 	}
@@ -189,13 +185,10 @@ void huffman::restoreTree(char* input, unsigned short int size){
 			if (!tree_bool_temp.front()){
 				Node* temp_left = new Node();
 				Node* temp_right = new Node();
-
 				current.front()->left = temp_left;
 				current.front()->right = temp_right;
-
 				next.push_back(temp_left);
 				next.push_back(temp_right);
-
 				current.pop_front();
 				tree_bool_temp.pop_front();
 			} else {
@@ -227,16 +220,13 @@ void huffman::buildTable(Node* node, vector <vector <bool> > &table){
 			code.push_back(0);
 			buildTable(node->left, table);
 		}
-
 		if (node->right){
 			code.push_back(1);
 			buildTable(node->right, table);
 		}
-
 		if (isPeak(node)){
 			table[unsigned char(node->data)] = code;
 		}
-
 		if (!code.empty()){
 			code.pop_back();
 		}
@@ -244,7 +234,7 @@ void huffman::buildTable(Node* node, vector <vector <bool> > &table){
 }
 
 // converting binary tree to binary code
-void huffman::treeToBool(){
+deque<bool> huffman::treeToBool(){
 	// pushing tree nodes by levels and left-to-right order
 	deque <Node> first;
 	first.push_back(*root);
@@ -275,7 +265,7 @@ void huffman::treeToBool(){
 		}
 	}
 
-	tree_bool = second;
+	return second;
 }
 
 bool huffman::compress(){
@@ -299,8 +289,7 @@ bool huffman::compress(){
 	buildTable(root, table);
 
 	// converting binary tree into binary code
-	treeToBool();
-
+	deque <bool> tree_bool = treeToBool();
 	deleteTree(root);
 
 	// converting size of binary tree code from bits to bytes

@@ -21,7 +21,6 @@ private:
 
 	char* filename;
 	Node* root;
-	std::deque <bool> tree_bool;
 
 public:
 	static huffman& getInstance();
@@ -41,7 +40,7 @@ private:
 
 	void buildTree();
 	void restoreTree(char*, unsigned short int);
-	void treeToBool();
+	std::deque<bool> treeToBool();
 
 	static void buildTable(Node*, std::vector <std::vector <bool> > &);
 	static void deleteTree(Node* &);
