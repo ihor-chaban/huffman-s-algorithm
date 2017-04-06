@@ -120,7 +120,7 @@ void huffman::buildTree(){
 		while (input.read(&temp_byte, sizeof(char))){
 			count[unsigned char(temp_byte)]++;
 		}
-		count[unsigned char(EOF)]++;
+		count[unsigned char(EOF)] += 2;
 	} else {
 		return;
 	}
